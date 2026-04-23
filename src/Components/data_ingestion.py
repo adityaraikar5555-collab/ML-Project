@@ -22,6 +22,17 @@ class DataIngestion:
     def __init__(self):
         self.config = DataIngestionConfig()
 
+    @staticmethod
+    def clean_column_names(df: pd.DataFrame) -> pd.DataFrame:
+        df.columns = (
+            df.columns.str.strip()
+            .str.lower()
+            .str.replace(r"[^\w]+", "_", regex=True)
+            .str.replace(r"_+", "_", regex=True)
+            .str.strip("_")
+        )
+        return df
+
     def initiate_data_ingestion(self):
         logging.info("Entered the data ingestion component")
 
@@ -29,9 +40,13 @@ class DataIngestion:
             os.makedirs(self.config.artifacts_dir, exist_ok=True)
             logging.info("Artifacts directory created successfully")
 
+            logging.info(f"Reading dataset from: {self.config.source_data_path}")
             df = pd.read_csv(self.config.source_data_path)
-            logging.info("Dataset read as dataframe successfully")
-            logging.info(f"Dataset shape: rows={df.shape[0]}, columns={df.shape[1]}")
+
+            logging.info(f"Original dataset shape: {df.shape}")
+
+            df = self.clean_column_names(df)
+            logging.info(f"Cleaned column names: {list(df.columns)}")
 
             df.to_csv(self.config.raw_data_path, index=False, header=True)
             logging.info("Raw dataset saved successfully")
@@ -47,7 +62,7 @@ class DataIngestion:
             test_set.to_csv(self.config.test_data_path, index=False, header=True)
 
             logging.info("Train and test datasets saved successfully")
-            logging.info("Data ingestion completed")
+            logging.info("Data ingestion completed successfully")
 
             return (
                 self.config.train_data_path,
@@ -56,9 +71,14 @@ class DataIngestion:
             )
 
         except Exception as e:
+            logging.error("Error occurred during data ingestion")
             raise CustomException(e, sys)
 
 
 if __name__ == "__main__":
     obj = DataIngestion()
-    print(obj.initiate_data_ingestion())
+    train_path, test_path, raw_path = obj.initiate_data_ingestion()
+
+    print("Train path:", train_path)
+    print("Test path:", test_path)
+    print("Raw path:", raw_path)
