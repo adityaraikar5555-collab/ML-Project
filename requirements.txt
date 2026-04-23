@@ -6,4 +6,3 @@ matplotlib
 seaborn
 catboost
 xgboost
--e .
