@@ -1,8 +1,6 @@
 from flask import Flask, request, render_template
 import pandas as pd
 
-from src.pipeline.predict_pipeline import PredictPipeline
-
 app = Flask(__name__)
 
 
@@ -16,20 +14,28 @@ def predict_datapoint():
     if request.method == "GET":
         return render_template("home.html")
 
-    data = pd.DataFrame([{
-        "gender": request.form.get("gender"),
-        "race_ethnicity": request.form.get("race_ethnicity"),
-        "parental_level_of_education": request.form.get("parental_level_of_education"),
-        "lunch": request.form.get("lunch"),
-        "test_preparation_course": request.form.get("test_preparation_course"),
-        "writing_score": float(request.form.get("writing_score")),
-        "reading_score": float(request.form.get("reading_score"))
-    }])
+    try:
+        from src.pipeline.predict_pipeline import PredictPipeline
 
-    predict_pipeline = PredictPipeline()
-    results = predict_pipeline.predict(data)
+        data = pd.DataFrame([{
+            "gender": request.form.get("gender"),
+            "race_ethnicity": request.form.get("race_ethnicity"),
+            "parental_level_of_education": request.form.get("parental_level_of_education"),
+            "lunch": request.form.get("lunch"),
+            "test_preparation_course": request.form.get("test_preparation_course"),
+            "writing_score": float(request.form.get("writing_score")),
+            "reading_score": float(request.form.get("reading_score"))
+        }])
 
-    return render_template("home.html", results=round(results[0], 2))
+        predict_pipeline = PredictPipeline()
+        results = predict_pipeline.predict(data)
+
+        prediction = round(float(results[0]), 2)
+
+        return render_template("home.html", results=prediction)
+
+    except Exception as e:
+        return render_template("home.html", results=f"Error: {str(e)}"), 500
 
 
 if __name__ == "__main__":
