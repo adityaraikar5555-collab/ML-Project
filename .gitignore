@@ -144,10 +144,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-catboost_info/
-logs/
-__pycache__/
-*.pyc
+
 
 # Spyder project settings
 .spyderproject
